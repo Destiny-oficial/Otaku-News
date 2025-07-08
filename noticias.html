@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Noticias - Anime Offis</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .noticia {
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .noticia img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .autor {
+      font-size: 0.9em;
+      color: #ccc;
+    }
+    .fecha {
+      font-size: 0.8em;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <h1>📰 Noticias Anime Offis</h1>
+  <div id="contenedorNoticias">Cargando noticias...</div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    // Tu configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSqQKDFeVwEYgzZEZRgJJKEPT-iQxCVWU",
+      authDomain: "puntos-50cef.firebaseapp.com",
+      databaseURL: "https://puntos-50cef-default-rtdb.firebaseio.com",
+      projectId: "puntos-50cef",
+      storageBucket: "puntos-50cef.appspot.com",
+      messagingSenderId: "602416916531",
+      appId: "1:602416916531:web:6c6ed7e1ef2b1de90a5b46"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const contenedor = document.getElementById("contenedorNoticias");
+    contenedor.innerHTML = "";
+
+    db.ref("noticias").limitToLast(20).once("value", (snapshot) => {
+      const noticias = [];
+      snapshot.forEach(child => {
+        noticias.unshift(child.val());
+      });
+
+      if (noticias.length === 0) {
+        contenedor.innerHTML = "<p>No hay noticias aún.</p>";
+        return;
+      }
+
+      noticias.forEach(noticia => {
+        const div = document.createElement("div");
+        div.className = "noticia";
+        div.innerHTML = `
+          <div class="autor">🧑 Autor: ${noticia.autor || "anónimo"}</div>
+          <div class="fecha">📅 ${new Date(noticia.fecha).toLocaleString()}</div>
+          <p>${noticia.texto}</p>
+          ${noticia.imagen ? `<img src="${noticia.imagen}" alt="Noticia">` : ""}
+        `;
+        contenedor.appendChild(div);
+      });
+    });
+  </script>
+</body>
+</html>
