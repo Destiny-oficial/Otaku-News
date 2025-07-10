@@ -1,45 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Noticias - Anime Offis</title>
   <style>
     body {
-      background-color: #121212;
-      color: #fff;
+      background-color: #f0f0f0;
+      color: #111;
       font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 20px;
     }
+
     h1 {
       text-align: center;
-      margin-bottom: 30px;
-    }
-    .noticia {
-      background: #1e1e1e;
-      border-radius: 10px;
-      padding: 15px;
       margin-bottom: 20px;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      font-size: 32px;
+      color: #111;
     }
-    .noticia img {
-      max-width: 100%;
-      border-radius: 10px;
+
+    #buscador {
+      width: 100%;
+      max-width: 500px;
+      display: block;
+      margin: 0 auto 30px auto;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .noticia {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 40px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .titulo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 15px;
+    }
+
+    .texto, .descripcion {
+      font-size: 17px;
+      line-height: 1.8;
+      margin-bottom: 15px;
+    }
+
+    .autor, .fecha {
+      font-size: 0.9em;
+      color: #666;
       margin-top: 10px;
     }
-    .autor {
-      font-size: 0.9em;
-      color: #ccc;
+
+    .ver-mas {
+      color: #007bff;
+      cursor: pointer;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 15px;
     }
-    .fecha {
-      font-size: 0.8em;
-      color: #888;
+
+    .ver-mas:hover {
+      text-decoration: underline;
+    }
+
+    /* 🔥 Etiqueta y contenedor de imagen */
+    .img-contenedor {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .img-contenedor img {
+      width: 100%;
+      display: block;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+
+    .etiqueta {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #ff3c3c;
+      color: white;
+      font-weight: bold;
+      font-size: 13px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      z-index: 2;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 600px) {
+      .titulo { font-size: 22px; }
+      .texto, .descripcion { font-size: 16px; }
     }
   </style>
 </head>
 <body>
-  <h1>📰 Noticias Anime Offis</h1>
+  <h1>📰 Noticias Otaku-News</h1>
+  <input type="text" id="buscador" placeholder="Buscar por título, autor o contenido..." />
+
   <div id="contenedorNoticias">Cargando noticias...</div>
 
   <!-- Firebase -->
@@ -47,7 +119,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    // Tu configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCSqQKDFeVwEYgzZEZRgJJKEPT-iQxCVWU",
       authDomain: "puntos-50cef.firebaseapp.com",
@@ -57,33 +128,84 @@
       messagingSenderId: "602416916531",
       appId: "1:602416916531:web:6c6ed7e1ef2b1de90a5b46"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const contenedor = document.getElementById("contenedorNoticias");
-    contenedor.innerHTML = "";
+    const buscador = document.getElementById("buscador");
 
-    db.ref("noticias").limitToLast(20).once("value", (snapshot) => {
-      const noticias = [];
+    let noticias = [];
+
+    function renderNoticias(filtradas) {
+      contenedor.innerHTML = "";
+      if (filtradas.length === 0) {
+        contenedor.innerHTML = "<p>No se encontraron noticias.</p>";
+        return;
+      }
+
+      filtradas.forEach((n, index) => {
+        const div = document.createElement("div");
+        div.className = "noticia";
+
+        const textoLargo = (n.texto || "").length > 300;
+        const textoVisible = textoLargo ? n.texto.slice(0, 300) + "..." : n.texto;
+
+        div.innerHTML = `
+          <div class="titulo">${n.titulo || "Sin título"}</div>
+          ${n.descripcion1 ? `<div class="descripcion">${n.descripcion1}</div>` : ""}
+          ${n.imagen1 ? `
+            <div class="img-contenedor">
+              <span class="etiqueta">Otaku-News</span>
+              <img src="${n.imagen1}" alt="Imagen 1">
+            </div>` : ""}
+          ${n.descripcion2 ? `<div class="descripcion">${n.descripcion2}</div>` : ""}
+          ${n.imagen2 ? `
+            <div class="img-contenedor">
+              <span class="etiqueta">Otaku-News</span>
+              <img src="${n.imagen2}" alt="Imagen 2">
+            </div>` : ""}
+          <div class="texto" id="texto-${index}">${textoVisible}</div>
+          ${textoLargo ? `<span class="ver-mas" onclick="mostrarCompleto(${index}, \`${n.texto.replace(/`/g, "\\`")}\`)">Ver más</span>` : ""}
+          <div class="fecha">📅 ${new Date(n.fecha).toLocaleString()}</div>
+          <div class="autor">✍️ Publicado por: ${n.autor || "anónimo"}</div>
+        `;
+        contenedor.appendChild(div);
+      });
+    }
+
+    function mostrarCompleto(index, textoCompleto) {
+      const divTexto = document.getElementById(`texto-${index}`);
+      const btn = divTexto.nextElementSibling;
+
+      if (btn.textContent === "Ver más") {
+        divTexto.textContent = textoCompleto;
+        btn.textContent = "Ver menos";
+      } else {
+        divTexto.textContent = textoCompleto.slice(0, 300) + "...";
+        btn.textContent = "Ver más";
+      }
+    }
+
+    db.ref("noticias").limitToLast(100).once("value", (snapshot) => {
       snapshot.forEach(child => {
         noticias.unshift(child.val());
       });
 
-      if (noticias.length === 0) {
-        contenedor.innerHTML = "<p>No hay noticias aún.</p>";
-        return;
-      }
+      renderNoticias(noticias);
 
-      noticias.forEach(noticia => {
-        const div = document.createElement("div");
-        div.className = "noticia";
-        div.innerHTML = `
-          <div class="autor">🧑 Autor: ${noticia.autor || "anónimo"}</div>
-          <div class="fecha">📅 ${new Date(noticia.fecha).toLocaleString()}</div>
-          <p>${noticia.texto}</p>
-          ${noticia.imagen ? `<img src="${noticia.imagen}" alt="Noticia">` : ""}
-        `;
-        contenedor.appendChild(div);
+      buscador.addEventListener("input", () => {
+        const texto = buscador.value.toLowerCase();
+        const filtradas = noticias.filter(n => {
+          return (
+            (n.titulo && n.titulo.toLowerCase().includes(texto)) ||
+            (n.descripcion1 && n.descripcion1.toLowerCase().includes(texto)) ||
+            (n.descripcion2 && n.descripcion2.toLowerCase().includes(texto)) ||
+            (n.texto && n.texto.toLowerCase().includes(texto)) ||
+            (n.autor && n.autor.toLowerCase().includes(texto))
+          );
+        });
+        renderNoticias(filtradas);
       });
     });
   </script>
