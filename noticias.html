@@ -1,9 +1,10 @@
+<!-- noticias.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Noticias - Anime Offis</title>
+  <title>Noticias - Otaku-News</title>
   <style>
     body {
       background-color: #f0f0f0;
@@ -12,14 +13,12 @@
       margin: 0;
       padding: 20px;
     }
-
     h1 {
       text-align: center;
       margin-bottom: 20px;
       font-size: 32px;
       color: #111;
     }
-
     #buscador {
       width: 100%;
       max-width: 500px;
@@ -30,7 +29,6 @@
       border: 1px solid #ccc;
       border-radius: 8px;
     }
-
     .noticia {
       background: #fff;
       border-radius: 12px;
@@ -38,26 +36,21 @@
       margin-bottom: 40px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
     }
-
     .titulo {
       font-size: 28px;
       font-weight: bold;
-      color: #000;
       margin-bottom: 15px;
     }
-
     .texto, .descripcion {
       font-size: 17px;
       line-height: 1.8;
       margin-bottom: 15px;
     }
-
     .autor, .fecha {
       font-size: 0.9em;
       color: #666;
       margin-top: 10px;
     }
-
     .ver-mas {
       color: #007bff;
       cursor: pointer;
@@ -66,12 +59,9 @@
       margin-top: 5px;
       font-size: 15px;
     }
-
     .ver-mas:hover {
       text-decoration: underline;
     }
-
-    /* 🔥 Etiqueta y contenedor de imagen */
     .img-contenedor {
       position: relative;
       display: inline-block;
@@ -80,44 +70,42 @@
       border-radius: 10px;
       overflow: hidden;
     }
-
     .img-contenedor img {
       width: 100%;
       display: block;
       border-radius: 10px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
-
     .etiqueta {
       position: absolute;
       top: 10px;
       left: 10px;
-      background-color: #ff3c3c;
+      background-color: #0077ff;
       color: white;
       font-weight: bold;
       font-size: 13px;
       padding: 4px 8px;
       border-radius: 6px;
       z-index: 2;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
     }
-
-    @media (max-width: 600px) {
-      .titulo { font-size: 22px; }
-      .texto, .descripcion { font-size: 16px; }
+    .etiqueta2 {
+      position: absolute; top: 35px; left: 10px;
+      background: #ff4d4d;
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px; font-weight: bold;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
   <h1>📰 Noticias Otaku-News</h1>
   <input type="text" id="buscador" placeholder="Buscar por título, autor o contenido..." />
-
   <div id="contenedorNoticias">Cargando noticias...</div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCSqQKDFeVwEYgzZEZRgJJKEPT-iQxCVWU",
@@ -128,13 +116,13 @@
       messagingSenderId: "602416916531",
       appId: "1:602416916531:web:6c6ed7e1ef2b1de90a5b46"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const contenedor = document.getElementById("contenedorNoticias");
     const buscador = document.getElementById("buscador");
-
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
     let noticias = [];
 
     function renderNoticias(filtradas) {
@@ -143,20 +131,18 @@
         contenedor.innerHTML = "<p>No se encontraron noticias.</p>";
         return;
       }
-
       filtradas.forEach((n, index) => {
         const div = document.createElement("div");
         div.className = "noticia";
-
         const textoLargo = (n.texto || "").length > 300;
         const textoVisible = textoLargo ? n.texto.slice(0, 300) + "..." : n.texto;
-
         div.innerHTML = `
           <div class="titulo">${n.titulo || "Sin título"}</div>
           ${n.descripcion1 ? `<div class="descripcion">${n.descripcion1}</div>` : ""}
           ${n.imagen1 ? `
             <div class="img-contenedor">
               <span class="etiqueta">Otaku-News</span>
+              <div class="etiqueta2">Animes</div>
               <img src="${n.imagen1}" alt="Imagen 1">
             </div>` : ""}
           ${n.descripcion2 ? `<div class="descripcion">${n.descripcion2}</div>` : ""}
@@ -177,7 +163,6 @@
     function mostrarCompleto(index, textoCompleto) {
       const divTexto = document.getElementById(`texto-${index}`);
       const btn = divTexto.nextElementSibling;
-
       if (btn.textContent === "Ver más") {
         divTexto.textContent = textoCompleto;
         btn.textContent = "Ver menos";
@@ -187,27 +172,34 @@
       }
     }
 
-    db.ref("noticias").limitToLast(100).once("value", (snapshot) => {
-      snapshot.forEach(child => {
-        noticias.unshift(child.val());
+    if (id) {
+      buscador.style.display = "none";
+      db.ref("noticias/" + id).once("value", snap => {
+        if (!snap.exists()) {
+          contenedor.innerHTML = "<p>⚠️ Noticia no encontrada.</p>";
+        } else {
+          renderNoticias([snap.val()]);
+        }
       });
-
-      renderNoticias(noticias);
-
-      buscador.addEventListener("input", () => {
-        const texto = buscador.value.toLowerCase();
-        const filtradas = noticias.filter(n => {
-          return (
-            (n.titulo && n.titulo.toLowerCase().includes(texto)) ||
-            (n.descripcion1 && n.descripcion1.toLowerCase().includes(texto)) ||
-            (n.descripcion2 && n.descripcion2.toLowerCase().includes(texto)) ||
-            (n.texto && n.texto.toLowerCase().includes(texto)) ||
-            (n.autor && n.autor.toLowerCase().includes(texto))
-          );
+    } else {
+      db.ref("noticias").limitToLast(100).once("value", snapshot => {
+        snapshot.forEach(child => {
+          noticias.unshift(child.val());
         });
-        renderNoticias(filtradas);
+        renderNoticias(noticias);
+        buscador.addEventListener("input", () => {
+          const texto = buscador.value.toLowerCase();
+          const filtradas = noticias.filter(n =>
+            (n.titulo || "").toLowerCase().includes(texto) ||
+            (n.descripcion1 || "").toLowerCase().includes(texto) ||
+            (n.descripcion2 || "").toLowerCase().includes(texto) ||
+            (n.texto || "").toLowerCase().includes(texto) ||
+            (n.autor || "").toLowerCase().includes(texto)
+          );
+          renderNoticias(filtradas);
+        });
       });
-    });
+    }
   </script>
 </body>
 </html>
