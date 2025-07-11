@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF‑8" />
+  <meta name="viewport" content="width=device‑width, initial‑scale=1" />
+  <title>Blog - Otaku-News</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: #1b1d2b;
+      color: #e0e0e0;
+    }
+
+    header {
+      background: #0f172a;
+      color: #00bfff;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.4rem;
+    }
+
+    header p {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: #b0d4ff;
+    }
+
+    .logo {
+      margin-top: 15px;
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    nav {
+      background: #0d1a2d;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: #9fc9ff;
+      text-decoration: none;
+      padding: 12px 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background: #15263e;
+    }
+
+    #buscador {
+      width: calc(100% - 40px); max-width: 600px;
+      margin: 20px auto; display: block;
+      padding: 10px;
+      border: none; border-radius: 5px;
+      font-size: 16px;
+      background: #f3f3f3;
+      color: #111;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+      gap: 20px;
+      max-width: 1200px; margin: 0 auto;
+      padding: 20px;
+    }
+
+    .noticia {
+      background: #fff;
+      color: #111;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .img-contenedor { position: relative; }
+    .img-contenedor img {
+      width: 100%; height: auto; display: block;
+    }
+
+    .etiqueta {
+      position: absolute; top: 10px; left: 10px;
+      background: #0077ff;
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px; font-weight: bold;
+      border-radius: 4px;
+    }
+    .etiqueta2 {
+      position: absolute; top: 35px; left: 10px;
+      background: #ff4d4d;
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px; font-weight: bold;
+      border-radius: 4px;
+    }
+
+    .contenido {
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .titulo a {
+      text-decoration: none;
+      color: #111;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    .descripcion {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .texto {
+      font-size: 0.95rem;
+      color: #333;
+      flex-grow: 1;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .ver-mas {
+      color: #007bff;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .autor, .fecha {
+      font-size: 0.8rem;
+      color: #777;
+    }
+
+    .fecha { margin-top: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- 🧠 CABECERA -->
+  <header>
+      <img class="logo" src="dylan.jpg" alt="Logo">
+    <h1>📰 Blog Otaku-News</h1>
+    <p>Mantente al tanto de las novedades que tenemos para ti</p>
+    
+    <!-- Cambia el src por tu logo -->
+  </header>
+
+  <!-- 📚 MENÚ DE NAVEGACIÓN -->
+  <nav>
+    <a href="#novedades">Novedades</a>
+    <a href="#calendario">Calendario de Verano</a>
+    <a href="#peliculas">Películas</a>
+    <a href="#crunchy">Crunchyroll News</a>
+    <a href="#noticias.html">Animes</a>
+  </nav>
+
+  <!-- 🔎 BUSCADOR -->
+  <input id="buscador" placeholder="Buscar noticias..." />
+
+  <!-- 📃 CONTENEDOR DE NOTICIAS -->
+  <main id="contenedorNoticias">Cargando...</main>
+
+  <!-- 🔥 FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSqQKDFeVwEYgzZEZRgJJKEPT-iQxCVWU",
+      authDomain: "puntos-50cef.firebaseapp.com",
+      databaseURL: "https://puntos-50cef-default-rtdb.firebaseio.com",
+      projectId: "puntos-50cef",
+      storageBucket: "puntos-50cef.appspot.com",
+      messagingSenderId: "602416916531",
+      appId: "1:602416916531:web:6c6ed7e1ef2b1de90a5b46"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const cont = document.getElementById("contenedorNoticias");
+    const busc = document.getElementById("buscador");
+    let noticias = [];
+
+    function render(nList) {
+      cont.innerHTML = "";
+      if (nList.length === 0) {
+        cont.innerHTML = "<p>No se encontraron noticias.</p>";
+        return;
+      }
+      nList.forEach((n, i) => {
+        const largo = (n.texto||"").length > 200;
+        const resumen = largo ? n.texto.slice(0,200)+"..." : n.texto;
+        const item = document.createElement("article");
+        item.className = "noticia";
+        item.innerHTML = `
+          ${n.imagen1 ? `
+          <div class="img-contenedor">
+            <img src="${n.imagen1}" alt="Portada">
+            <div class="etiqueta">Otaku‑News</div>
+            <div class="etiqueta2">Animes</div>
+          </div>` : ""}
+          <div class="contenido">
+            <h2 class="titulo"><a href="noticias.html?id=${n.id}">${n.titulo||"Sin título"}</a></h2>
+            ${n.descripcion1 ? `<p class="descripcion">${n.descripcion1}</p>` : ""}
+            <p class="texto" id="t${i}">${resumen}</p>
+            ${largo ? `<span class="ver-mas" onclick="toggle(${i})">Ver más</span>` : ""}
+            <div class="autor">✍️ ${n.autor||"anónimo"}</div>
+            <div class="fecha">📅 ${new Date(n.fecha).toLocaleString()}</div>
+          </div>`;
+        cont.appendChild(item);
+      });
+    }
+
+    window.toggle = (i) => {
+      const p = document.getElementById("t"+i);
+      const btn = p.nextElementSibling;
+      if (btn.textContent === "Ver más") {
+        p.textContent = noticias[i].texto;
+        btn.textContent = "Ver menos";
+      } else {
+        p.textContent = noticias[i].texto.slice(0,200)+"...";
+        btn.textContent = "Ver más";
+      }
+    };
+
+    db.ref("noticias").orderByChild("fecha").limitToLast(100).once("value", snap => {
+      snap.forEach(c => {
+        const n = c.val();
+        n.id = c.key;
+        noticias.unshift(n);
+      });
+      render(noticias);
+    });
+
+    busc.addEventListener("input", () => {
+      const t=busc.value.toLowerCase();
+      render(noticias.filter(n=>(
+        (n.titulo||"").toLowerCase().includes(t) ||
+        (n.descripcion1||"").toLowerCase().includes(t) ||
+        (n.texto||"").toLowerCase().includes(t) ||
+        (n.autor||"").toLowerCase().includes(t)
+      )));
+    });
+  </script>
+</body>
+</html>
